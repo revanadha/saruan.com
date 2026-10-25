@@ -1,0 +1,14 @@
+# AI Agent configurations
+.agents/
+.claude/
+.codex/
+.opencode/
+AGENTS.md
+CLAUDE.md
+DESIGN.md*
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
