@@ -20,18 +20,28 @@ class WeddingAudioController {
   }
 
   initAudioElement() {
-    // Coba load file audio lokal jika tersedia
-    this.audioElement = new Audio('assets/audio/Ini Abadi - Perunggu Lirik Lagu.mp3');
-    this.audioElement.loop = true;
-    this.audioElement.volume = 0.4;
+    // Utamakan file tanpa spasi agar kompatibel 100% di GitHub Pages dan Linux server
+    const primaryAudioPath = 'assets/audio/wedding-song.mp3';
+    const fallbackAudioPath = encodeURI('assets/audio/Ini Abadi - Perunggu Lirik Lagu.mp3');
 
-    this.audioElement.addEventListener('canplaythrough', () => {
-      this.hasLocalAudio = true;
-    });
+    this.audioElement = new Audio(primaryAudioPath);
+    this.audioElement.loop = true;
+    this.audioElement.volume = 0.5;
+    this.audioElement.preload = 'auto';
 
     this.audioElement.addEventListener('error', () => {
-      // Jika file mp3 belum dimasukkan oleh pengguna, gunakan Web Audio API synthesizer
-      this.hasLocalAudio = false;
+      // Jika wedding-song.mp3 tidak ditemukan, coba file nama lengkap dengan encodeURI
+      if (this.audioElement.src.indexOf('wedding-song.mp3') !== -1) {
+        this.audioElement.src = fallbackAudioPath;
+        if (this.isPlaying) {
+          this.audioElement.play().catch(() => this.startRomanticMelody());
+        }
+      } else {
+        // Jika keduanya tidak ada, gunakan synthesizer
+        if (this.isPlaying) {
+          this.startRomanticMelody();
+        }
+      }
     });
   }
 
@@ -129,13 +139,18 @@ class WeddingAudioController {
   play() {
     this.isPlaying = true;
 
-    if (this.hasLocalAudio && this.audioElement) {
+    if (this.audioElement) {
       const playPromise = this.audioElement.play();
       if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Jika ada kendala pada file audio lokal, fallback ke synth
-          this.startRomanticMelody();
-        });
+        playPromise
+          .then(() => {
+            // Berhasil memutar MP3 lokal
+            this.stopRomanticMelody();
+          })
+          .catch((err) => {
+            console.warn('Gagal memutar audio, mencoba fallback synth:', err);
+            this.startRomanticMelody();
+          });
       }
     } else {
       this.startRomanticMelody();
